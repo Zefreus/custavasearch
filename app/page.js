@@ -14,10 +14,12 @@ export default function HomePage() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [user, setUser] = useState(null);
+  const [trending, setTrending] = useState([]);
   const debounceTimer = useRef(null);
 
   useEffect(() => {
     fetchUser();
+    fetchTrending();
   }, []);
 
   const fetchUser = async () => {
@@ -27,6 +29,16 @@ export default function HomePage() {
       setUser(data.user);
     } catch (error) {
       console.error('Error fetching user:', error);
+    }
+  };
+
+  const fetchTrending = async () => {
+    try {
+      const res = await fetch('/api/trending?days=7');
+      const data = await res.json();
+      setTrending(data.trending || []);
+    } catch (error) {
+      console.error('Error fetching trending:', error);
     }
   };
 
