@@ -606,8 +606,16 @@ export async function GET(request, context) {
   }
   
   // Admin routes
-  if (segments[0] === 'admin' && segments[1] === 'metrics') {
-    return handleAdminMetrics();
+  if (segments[0] === 'admin') {
+    if (segments[1] === 'metrics') {
+      return handleAdminMetrics();
+    }
+    if (segments[1] === 'logs' && segments[2] === 'searches') {
+      return handleAdminSearchLogs();
+    }
+    if (segments[1] === 'logs' && segments[2] === 'products') {
+      return handleAdminProductLogs();
+    }
   }
   
   // Filters route
