@@ -2,11 +2,80 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, TrendingUp, Package, Store } from 'lucide-react';
+import { Search, TrendingUp, Package, Store, ShieldCheck, BarChart3, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
+import Script from 'next/script';
+
+// JSON-LD para SEO estruturado
+const jsonLdWebSite = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Custava Search",
+  "alternateName": "Custava - Buscador de Preços",
+  "url": "https://custavasearch.vercel.app",
+  "description": "Portal de busca de preços baseado em notas fiscais eletrônicas (NF-e). Compare preços de produtos, veja histórico completo e encontre as melhores ofertas do mercado brasileiro.",
+  "inLanguage": "pt-BR",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://custavasearch.vercel.app/buscar?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+};
+
+const jsonLdOrganization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Custava Search",
+  "url": "https://custavasearch.vercel.app",
+  "logo": "https://custavasearch.vercel.app/logo.png",
+  "description": "Plataforma brasileira de comparação de preços baseada em dados reais de notas fiscais eletrônicas.",
+  "sameAs": []
+};
+
+const jsonLdFAQ = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "O que é o Custava Search?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "O Custava Search é um portal de busca de preços que utiliza dados de notas fiscais eletrônicas (NF-e) reais para permitir a comparação de preços de produtos em diferentes lojas e datas."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Como funcionam os preços do Custava?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Os preços exibidos no Custava são extraídos diretamente de notas fiscais eletrônicas oficiais, garantindo dados autênticos e verificáveis de transações reais realizadas em estabelecimentos comerciais."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "O Custava Search é gratuito?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sim, a busca de produtos é 100% gratuita. Para acessar funcionalidades avançadas como histórico completo de preços e gráficos detalhados, é necessário criar uma conta gratuita."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quais tipos de produtos posso pesquisar?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Você pode pesquisar qualquer produto que tenha sido registrado em notas fiscais eletrônicas, incluindo itens de supermercados, farmácias, lojas de eletrônicos e diversos estabelecimentos comerciais."
+      }
+    }
+  ]
+};
 
 export default function HomePage() {
   const router = useRouter();
