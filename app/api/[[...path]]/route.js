@@ -128,6 +128,9 @@ async function handleSearch(request) {
       return NextResponse.json({ products: [], total: 0, page, totalPages: 0 });
     }
     
+    // Obter usuário logado (se houver)
+    const session = await getSession();
+    
     let conditions = ['(p.NomeTratado LIKE ? OR p.Nome LIKE ?)'];
     let params = [`%${q}%`, `%${q}%`];
     
@@ -157,6 +160,11 @@ async function handleSearch(request) {
     );
     
     const total = countResult?.total || 0;
+    
+    // Registrar log de busca (async, não bloqueia resposta)
+    logSearch(q, total, { uf, loja }, session).catch(err => 
+      console.error('Erro ao registrar log:', err)
+    );
     
     // Get products with aggregated data
     let orderBy = 'MAX(nf.DataEmissao) DESC';
