@@ -185,6 +185,107 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* About Section */}
+      <section className="container mx-auto px-4 py-16 bg-white/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              O que é o Custava Search?
+            </h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-purple-600 to-purple-800 mx-auto mb-6"></div>
+          </div>
+
+          <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
+            <p>
+              O <strong className="text-purple-700">Custava Search</strong> é um portal inovador que permite você 
+              <strong> comparar preços de produtos baseados em notas fiscais eletrônicas (NF-e) reais</strong>. 
+              Diferente de outros comparadores, nossos dados vêm diretamente de transações oficiais registradas, 
+              garantindo <strong>informações autênticas e confiáveis</strong>.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6 my-8">
+              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
+                <h3 className="font-semibold text-xl text-purple-900 mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Como Funciona
+                </h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Busque qualquer produto do mercado</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Veja preços reais de notas fiscais</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Compare entre diferentes lojas e datas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Acesse histórico completo de variações</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
+                <h3 className="font-semibold text-xl text-purple-900 mb-3 flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Benefícios
+                </h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span><strong>100% gratuito</strong> para buscar produtos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Dados baseados em <strong>NF-e oficiais</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Histórico completo de preços</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span>Identifique tendências e promoções</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <p>
+              Com o Custava Search, você tem acesso a <strong>milhares de registros de preços</strong> de 
+              supermercados, lojas e estabelecimentos comerciais. Nossa plataforma analisa notas fiscais 
+              para mostrar não apenas o preço atual, mas também o <strong>histórico de variações</strong>, 
+              permitindo que você identifique o melhor momento para comprar e onde encontrar os melhores preços.
+            </p>
+
+            <div className="bg-purple-100 border-l-4 border-purple-600 p-6 rounded-r-xl">
+              <p className="text-purple-900 font-medium">
+                💡 <strong>Dica:</strong> Faça login para acessar gráficos detalhados, histórico completo de preços 
+                e informações sobre onde cada produto foi vendido. Compare lojas, acompanhe tendências e economize 
+                dinheiro com dados reais do mercado!
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center mt-10">
+            <p className="text-gray-600 mb-4">Pronto para começar a economizar?</p>
+            <div className="flex gap-4 justify-center">
+              {!user && (
+                <Link href="/login">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800">
+                    Criar Conta Grátis
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
