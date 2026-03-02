@@ -457,6 +457,9 @@ async function handleAdminMetrics() {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
     
+    // Criar tabelas de log se não existirem
+    await createLogTables();
+    
     // Get total products count
     const productCount = await queryOne(
       `SELECT COUNT(DISTINCT COALESCE(NULLIF(TRIM(NomeTratado), ''), TRIM(Nome))) as total
@@ -490,6 +493,42 @@ async function handleAdminMetrics() {
   } catch (error) {
     console.error('Admin metrics error:', error);
     return NextResponse.json({ error: 'Erro ao carregar métricas' }, { status: 500 });
+  }
+}
+
+// GET /api/admin/logs/searches?days=30
+async function handleAdminSearchLogs() {
+  try {
+    const session = await getSession();
+    if (!session || !session.isAdmin) {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+    }
+    
+    const days = 30;
+    const stats = await getSearchStats(days);
+    
+    return NextResponse.json(stats);
+  } catch (error) {
+    console.error('Admin search logs error:', error);
+    return NextResponse.json({ error: 'Erro ao carregar logs de busca' }, { status: 500 });
+  }
+}
+
+// GET /api/admin/logs/products?days=30
+async function handleAdminProductLogs() {
+  try {
+    const session = await getSession();
+    if (!session || !session.isAdmin) {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+    }
+    
+    const days = 30;
+    const stats = await getProductStats(days);
+    
+    return NextResponse.json(stats);
+  } catch (error) {
+    console.error('Admin product logs error:', error);
+    return NextResponse.json({ error: 'Erro ao carregar logs de produtos' }, { status: 500 });
   }
 }
 
