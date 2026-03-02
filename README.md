@@ -57,6 +57,9 @@ MYSQL_SSL=false
 
 # Session
 SESSION_SECRET=custava-search-secret-key-change-in-production
+
+# External Auth API
+AUTH_API_URL=http://www.zefreus.com.br/api/api/token
 ```
 
 ## 🗄️ Estrutura do Banco de Dados
