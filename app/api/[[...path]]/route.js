@@ -546,7 +546,77 @@ async function handleAdminProductLogs() {
   }
 }
 
-// GET /api/filters
+// GET /api/trending?days=7
+async function handleTrending(request) {
+  try {
+    const url = new URL(request.url);
+    const days = parseInt(url.searchParams.get('days') || '7');
+    
+    const cacheKey = `trending:${days}`;
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return NextResponse.json({ trending: cached });
+    }
+    
+    // Buscar os termos mais buscados
+    const topSearches = await query(
+      `SELECT search_term, COUNT(*) as search_count
+       FROM zefreus.APP_SEARCH_LOG
+       WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+       GROUP BY search_term
+       ORDER BY search_count DESC
+       LIMIT 10`,
+      [days]
+    );
+    
+    // Para cada termo, buscar o preço mais atual do produto
+    const trendingWithPrices = [];
+    
+    for (const search of topSearches) {
+      try {
+        // Buscar produto correspondente
+        const product = await queryOne(
+          `SELECT 
+            COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome)) as product_name,
+            MAX(CASE WHEN nf.DataEmissao = (
+              SELECT MAX(nf2.DataEmissao) 
+              FROM zefreus.APP_NOTA_FISCAL nf2
+              INNER JOIN zefreus.APP_NOTA_FISCAL_PRODUTO p2 ON p2.NotaFiscalID = nf2.Id
+              WHERE COALESCE(NULLIF(TRIM(p2.NomeTratado), ''), TRIM(p2.Nome)) LIKE ?
+            ) THEN p.ValorUnitario END) as last_price,
+            MIN(p.ValorUnitario) as best_price
+           FROM zefreus.APP_NOTA_FISCAL_PRODUTO p
+           INNER JOIN zefreus.APP_NOTA_FISCAL nf ON p.NotaFiscalID = nf.Id
+           WHERE (p.NomeTratado LIKE ? OR p.Nome LIKE ?)
+           GROUP BY COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome))
+           LIMIT 1`,
+          [`%${search.search_term}%`, `%${search.search_term}%`, `%${search.search_term}%`]
+        );
+        
+        if (product && product.last_price) {
+          trendingWithPrices.push({
+            searchTerm: search.search_term,
+            searchCount: search.search_count,
+            productName: product.product_name,
+            slug: slugify(product.product_name),
+            lastPrice: parseFloat(product.last_price),
+            bestPrice: parseFloat(product.best_price),
+            variation: ((parseFloat(product.last_price) - parseFloat(product.best_price)) / parseFloat(product.best_price) * 100)
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching product for search term:', search.search_term, error);
+      }
+    }
+    
+    setCache(cacheKey, trendingWithPrices, 300); // Cache por 5 minutos
+    
+    return NextResponse.json({ trending: trendingWithPrices });
+  } catch (error) {
+    console.error('Trending error:', error);
+    return NextResponse.json({ trending: [] });
+  }
+}
 async function handleFilters() {
   try {
     const cacheKey = 'filters';
