@@ -7,7 +7,7 @@ export async function GET() {
 User-agent: *
 Allow: /
 Allow: /buscar
-Allow: /loja/*
+Allow: /cadastro
 
 # Páginas protegidas - não indexar
 Disallow: /admin
@@ -15,6 +15,7 @@ Disallow: /admin/*
 Disallow: /api/*
 Disallow: /login
 Disallow: /test-auth
+Disallow: /produto/*
 
 # Sitemap
 Sitemap: ${baseUrl}/sitemap.xml
