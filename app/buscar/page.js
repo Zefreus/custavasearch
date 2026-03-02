@@ -180,12 +180,12 @@ export default function BuscarPage() {
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Estado (UF)</label>
-                  <Select value={filters.uf} onValueChange={(v) => handleFilterChange('uf', v)}>
+                  <Select value={filters.uf || 'todos'} onValueChange={(v) => handleFilterChange('uf', v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
                       {availableFilters.ufs.map((uf) => (
                         <SelectItem key={uf} value={uf}>{uf}</SelectItem>
                       ))}
@@ -195,12 +195,12 @@ export default function BuscarPage() {
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Loja</label>
-                  <Select value={filters.loja} onValueChange={(v) => handleFilterChange('loja', v)}>
+                  <Select value={filters.loja || 'todas'} onValueChange={(v) => handleFilterChange('loja', v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="todas">Todas</SelectItem>
                       {availableFilters.stores.slice(0, 20).map((store) => (
                         <SelectItem key={store} value={store}>{store}</SelectItem>
                       ))}
