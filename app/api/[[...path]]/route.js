@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
-import { authenticateUser, createSession, destroySession, getSession, requireAuth, requireAdmin } from '@/lib/auth';
+import { authenticateUser, createSession, destroySession, getSession, requireAuth, requireAdmin, createUserFromGoogle, registerUser } from '@/lib/auth';
 import { getCache, setCache } from '@/lib/cache';
 import { slugify } from '@/lib/utils';
 import { createLogTables, logSearch, logProductAccess, getSearchStats, getProductStats } from '@/lib/logger';
+import crypto from 'crypto';
 
 // Helper to get path segments
 function getPathSegments(request) {
