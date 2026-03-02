@@ -28,9 +28,10 @@ async function handleLogin(request) {
       return NextResponse.json({ error: 'Email ou senha inválidos' }, { status: 401 });
     }
     
-    await createSession(user);
+    const token = await createSession(user);
     
-    return NextResponse.json({ 
+    // Criar resposta com Set-Cookie header explícito
+    const response = NextResponse.json({ 
       success: true, 
       user: {
         name: user.name,
@@ -38,6 +39,19 @@ async function handleLogin(request) {
         isAdmin: user.isAdmin
       }
     });
+    
+    // Configurar cookie manualmente para garantir que funcione
+    response.cookies.set('session', token, {
+      httpOnly: true,
+      secure: false, // false para localhost/http
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    });
+    
+    console.log('✅ Cookie setado na resposta para:', user.email);
+    
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ error: 'Erro ao fazer login' }, { status: 500 });
