@@ -61,7 +61,9 @@ export default function AdminPage() {
 
   const fetchMetrics = async () => {
     try {
-      const res = await fetch('/api/admin/metrics');
+      const res = await fetch('/api/admin/metrics', {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setMetrics(data);
@@ -73,7 +75,9 @@ export default function AdminPage() {
 
   const fetchSearchLogs = async () => {
     try {
-      const res = await fetch('/api/admin/logs/searches?days=30');
+      const res = await fetch('/api/admin/logs/searches?days=30', {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setSearchLogs(data);
@@ -85,7 +89,9 @@ export default function AdminPage() {
 
   const fetchProductLogs = async () => {
     try {
-      const res = await fetch('/api/admin/logs/products?days=30');
+      const res = await fetch('/api/admin/logs/products?days=30', {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setProductLogs(data);
