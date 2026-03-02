@@ -289,6 +289,32 @@ export default function HomePage() {
               garantindo <strong>informações autênticas e confiáveis</strong>.
             </p>
 
+            <div className="grid md:grid-cols-3 gap-6 my-8">
+              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 text-center">
+                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ShieldCheck className="w-7 h-7 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-lg text-purple-900 mb-2">Dados Verificados</h3>
+                <p className="text-sm text-gray-600">Preços extraídos de NF-e oficiais do governo</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 text-center">
+                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="w-7 h-7 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-lg text-purple-900 mb-2">Histórico Completo</h3>
+                <p className="text-sm text-gray-600">Acompanhe a variação de preços ao longo do tempo</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 text-center">
+                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-7 h-7 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-lg text-purple-900 mb-2">Lojas por Região</h3>
+                <p className="text-sm text-gray-600">Compare preços em estabelecimentos próximos</p>
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-6 my-8">
               <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
                 <h3 className="font-semibold text-xl text-purple-900 mb-3 flex items-center gap-2">
@@ -368,6 +394,78 @@ export default function HomePage() {
                 </Link>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section para SEO */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Perguntas Frequentes
+            </h2>
+            <p className="text-gray-600">Tire suas dúvidas sobre o Custava Search</p>
+          </div>
+
+          <div className="space-y-4">
+            <details className="bg-white rounded-xl border border-purple-100 overflow-hidden group">
+              <summary className="p-6 cursor-pointer hover:bg-purple-50 transition-colors font-semibold text-gray-900 flex items-center justify-between">
+                <span>O que é o Custava Search?</span>
+                <span className="text-purple-600 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="px-6 pb-6 text-gray-700">
+                O Custava Search é um portal de busca de preços que utiliza dados de notas fiscais eletrônicas (NF-e) reais 
+                para permitir a comparação de preços de produtos em diferentes lojas e datas. Todos os preços são verificados 
+                e vêm de transações reais registradas oficialmente.
+              </div>
+            </details>
+
+            <details className="bg-white rounded-xl border border-purple-100 overflow-hidden group">
+              <summary className="p-6 cursor-pointer hover:bg-purple-50 transition-colors font-semibold text-gray-900 flex items-center justify-between">
+                <span>Como funcionam os preços do Custava?</span>
+                <span className="text-purple-600 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="px-6 pb-6 text-gray-700">
+                Os preços exibidos no Custava são extraídos diretamente de notas fiscais eletrônicas oficiais, garantindo 
+                dados autênticos e verificáveis de transações reais realizadas em estabelecimentos comerciais de todo o Brasil.
+              </div>
+            </details>
+
+            <details className="bg-white rounded-xl border border-purple-100 overflow-hidden group">
+              <summary className="p-6 cursor-pointer hover:bg-purple-50 transition-colors font-semibold text-gray-900 flex items-center justify-between">
+                <span>O Custava Search é gratuito?</span>
+                <span className="text-purple-600 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="px-6 pb-6 text-gray-700">
+                Sim, a busca de produtos é 100% gratuita! Qualquer pessoa pode pesquisar produtos sem criar uma conta. 
+                Para acessar funcionalidades avançadas como histórico completo de preços, gráficos detalhados e comparação 
+                entre lojas, basta criar uma conta gratuita.
+              </div>
+            </details>
+
+            <details className="bg-white rounded-xl border border-purple-100 overflow-hidden group">
+              <summary className="p-6 cursor-pointer hover:bg-purple-50 transition-colors font-semibold text-gray-900 flex items-center justify-between">
+                <span>Quais tipos de produtos posso pesquisar?</span>
+                <span className="text-purple-600 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="px-6 pb-6 text-gray-700">
+                Você pode pesquisar qualquer produto que tenha sido registrado em notas fiscais eletrônicas, incluindo 
+                itens de supermercados, farmácias, lojas de eletrônicos, materiais de construção e diversos outros 
+                estabelecimentos comerciais em todo o Brasil.
+              </div>
+            </details>
+
+            <details className="bg-white rounded-xl border border-purple-100 overflow-hidden group">
+              <summary className="p-6 cursor-pointer hover:bg-purple-50 transition-colors font-semibold text-gray-900 flex items-center justify-between">
+                <span>Como o Custava ajuda a economizar dinheiro?</span>
+                <span className="text-purple-600 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="px-6 pb-6 text-gray-700">
+                Com o histórico de preços, você pode identificar tendências e descobrir qual o melhor momento para comprar. 
+                Além disso, comparando preços entre diferentes lojas, você encontra onde cada produto está mais barato na sua região.
+              </div>
+            </details>
           </div>
         </div>
       </section>
