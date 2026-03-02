@@ -17,33 +17,42 @@ export default function ProdutoPage() {
   const [loading, setLoading] = useState(true);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotal, setHistoryTotal] = useState(0);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    checkAuthAndFetch();
-  }, [params.slug]);
+    if (!authChecked) {
+      checkAuthAndFetch();
+    }
+  }, [params.slug, authChecked]);
 
   useEffect(() => {
-    if (product) {
+    if (product && authChecked) {
       fetchHistory(historyPage);
     }
   }, [historyPage]);
 
   const checkAuthAndFetch = async () => {
+    console.log('🔍 Verificando autenticação...');
     try {
       const authRes = await fetch('/api/auth/me', {
         credentials: 'include' // Garantir que cookies sejam enviados
       });
       const authData = await authRes.json();
       
+      console.log('👤 Usuário:', authData.user ? authData.user.email : 'não autenticado');
+      
       if (!authData.user) {
+        console.log('❌ Não autenticado, redirecionando para login');
         router.push(`/login?returnUrl=/produto/${params.slug}`);
         return;
       }
 
+      console.log('✅ Autenticado! Carregando produto...');
+      setAuthChecked(true);
       await fetchProduct();
       await fetchHistory(1);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Erro na verificação:', error);
       router.push('/login');
     }
   };
