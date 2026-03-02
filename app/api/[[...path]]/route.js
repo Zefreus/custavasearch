@@ -300,6 +300,259 @@ async function handleGoogleCallback(request) {
   }
 }
 
+// POST /api/auth/forgot-password - Solicitar recuperação de senha
+async function handleForgotPassword(request) {
+  try {
+    const { email } = await request.json();
+    
+    if (!email) {
+      return NextResponse.json({ error: 'Email é obrigatório' }, { status: 400 });
+    }
+    
+    // Verificar se o email existe
+    const user = await queryOne(
+      'SELECT id, TX_NOME as name, TX_EMAIL as email FROM zefreus.CON_API_USER WHERE TX_EMAIL = ?',
+      [email.toLowerCase()]
+    );
+    
+    if (!user) {
+      // Por segurança, não revelamos se o email existe ou não
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Se o email estiver cadastrado, você receberá um link de recuperação.' 
+      });
+    }
+    
+    // Gerar token único
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+    
+    // Verificar se a tabela de tokens existe, se não, criar
+    await query(`
+      CREATE TABLE IF NOT EXISTS zefreus.APP_PASSWORD_RESET (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        token_hash VARCHAR(64) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        used_at DATETIME NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_token_hash (token_hash),
+        INDEX idx_user_id (user_id)
+      )
+    `);
+    
+    // Invalidar tokens anteriores do usuário
+    await query(
+      'UPDATE zefreus.APP_PASSWORD_RESET SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL',
+      [user.id]
+    );
+    
+    // Salvar novo token
+    await query(
+      'INSERT INTO zefreus.APP_PASSWORD_RESET (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+      [user.id, tokenHash, expiresAt]
+    );
+    
+    // Configurar transporte de email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD
+      }
+    });
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const resetUrl = `${baseUrl}/redefinir-senha?token=${resetToken}`;
+    
+    // Enviar email
+    await transporter.sendMail({
+      from: `"Custava Search" <${process.env.GMAIL_USER}>`,
+      to: user.email,
+      subject: 'Recuperação de Senha - Custava Search',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+            <tr>
+              <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #2563eb, #1e40af); padding: 30px 40px; text-align: center;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">Custava Search</h1>
+                      <p style="margin: 10px 0 0 0; color: #bfdbfe; font-size: 14px;">Pesquisa de Preços Inteligente</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 22px;">Olá, ${user.name}!</h2>
+                      
+                      <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                        Recebemos uma solicitação para redefinir a senha da sua conta no Custava Search.
+                      </p>
+                      
+                      <p style="margin: 0 0 30px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                        Clique no botão abaixo para criar uma nova senha:
+                      </p>
+                      
+                      <!-- CTA Button -->
+                      <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td align="center">
+                            <a href="${resetUrl}" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                              Redefinir Minha Senha
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                      
+                      <p style="margin: 30px 0 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                        <strong>Este link expira em 1 hora.</strong>
+                      </p>
+                      
+                      <p style="margin: 20px 0 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                        Se você não solicitou a redefinição de senha, ignore este email. Sua senha permanecerá a mesma.
+                      </p>
+                      
+                      <!-- Fallback URL -->
+                      <div style="margin-top: 30px; padding: 20px; background-color: #f3f4f6; border-radius: 6px;">
+                        <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 12px;">
+                          Se o botão não funcionar, copie e cole este link no seu navegador:
+                        </p>
+                        <p style="margin: 0; word-break: break-all; color: #2563eb; font-size: 12px;">
+                          ${resetUrl}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f9fafb; padding: 25px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+                      <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                        © ${new Date().getFullYear()} Custava Search. Todos os direitos reservados.
+                      </p>
+                      <p style="margin: 10px 0 0 0; color: #9ca3af; font-size: 12px;">
+                        Este email foi enviado para ${user.email}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `
+    });
+    
+    console.log('✅ Email de recuperação enviado para:', user.email);
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Email de recuperação enviado com sucesso' 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return NextResponse.json({ error: 'Erro ao enviar email de recuperação' }, { status: 500 });
+  }
+}
+
+// GET /api/auth/validate-reset-token - Validar token de recuperação
+async function handleValidateResetToken(request) {
+  try {
+    const url = new URL(request.url);
+    const token = url.searchParams.get('token');
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Token não fornecido' }, { status: 400 });
+    }
+    
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    
+    const resetRecord = await queryOne(
+      `SELECT pr.*, u.TX_EMAIL as email 
+       FROM zefreus.APP_PASSWORD_RESET pr
+       INNER JOIN zefreus.CON_API_USER u ON pr.user_id = u.id
+       WHERE pr.token_hash = ? AND pr.used_at IS NULL AND pr.expires_at > NOW()`,
+      [tokenHash]
+    );
+    
+    if (!resetRecord) {
+      return NextResponse.json({ error: 'Token inválido ou expirado' }, { status: 400 });
+    }
+    
+    return NextResponse.json({ valid: true, email: resetRecord.email });
+  } catch (error) {
+    console.error('Validate reset token error:', error);
+    return NextResponse.json({ error: 'Erro ao validar token' }, { status: 500 });
+  }
+}
+
+// POST /api/auth/reset-password - Redefinir senha
+async function handleResetPassword(request) {
+  try {
+    const { token, password } = await request.json();
+    
+    if (!token || !password) {
+      return NextResponse.json({ error: 'Token e senha são obrigatórios' }, { status: 400 });
+    }
+    
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres' }, { status: 400 });
+    }
+    
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    
+    // Buscar registro do token
+    const resetRecord = await queryOne(
+      `SELECT pr.*, u.TX_EMAIL as email 
+       FROM zefreus.APP_PASSWORD_RESET pr
+       INNER JOIN zefreus.CON_API_USER u ON pr.user_id = u.id
+       WHERE pr.token_hash = ? AND pr.used_at IS NULL AND pr.expires_at > NOW()`,
+      [tokenHash]
+    );
+    
+    if (!resetRecord) {
+      return NextResponse.json({ error: 'Token inválido ou expirado' }, { status: 400 });
+    }
+    
+    // Criar hash MD5 da nova senha
+    const passwordHash = crypto.createHash('md5').update(password).digest('hex');
+    
+    // Atualizar senha do usuário
+    await query(
+      'UPDATE zefreus.CON_API_USER SET TX_SENHA = ? WHERE id = ?',
+      [passwordHash, resetRecord.user_id]
+    );
+    
+    // Marcar token como usado
+    await query(
+      'UPDATE zefreus.APP_PASSWORD_RESET SET used_at = NOW() WHERE id = ?',
+      [resetRecord.id]
+    );
+    
+    console.log('✅ Senha redefinida para:', resetRecord.email);
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Senha redefinida com sucesso' 
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return NextResponse.json({ error: 'Erro ao redefinir senha' }, { status: 500 });
+  }
+}
+
 // GET /api/suggest?q=
 async function handleSuggest(request) {
   try {
