@@ -98,7 +98,9 @@ export default function HomePage() {
                   <span className="text-sm text-gray-600">Olá, {user.name}</span>
                   {user.isAdmin && (
                     <Link href="/admin">
-                      <Button variant="outline" size="sm">Admin</Button>
+                      <Button variant="default" size="sm" className="bg-gradient-to-r from-purple-600 to-purple-700">
+                        Admin
+                      </Button>
                     </Link>
                   )}
                   <Button variant="outline" size="sm" onClick={handleLogout}>
