@@ -30,7 +30,9 @@ export default function ProdutoPage() {
 
   const checkAuthAndFetch = async () => {
     try {
-      const authRes = await fetch('/api/auth/me');
+      const authRes = await fetch('/api/auth/me', {
+        credentials: 'include' // Garantir que cookies sejam enviados
+      });
       const authData = await authRes.json();
       
       if (!authData.user) {
