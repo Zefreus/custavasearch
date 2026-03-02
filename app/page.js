@@ -396,7 +396,7 @@ export default function HomePage() {
             <p className="text-gray-600 mb-4">Pronto para começar a economizar?</p>
             <div className="flex gap-4 justify-center">
               {!user && (
-                <Link href="/login">
+                <Link href="/cadastro">
                   <Button size="lg" className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800">
                     Criar Conta Grátis
                   </Button>
