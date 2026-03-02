@@ -238,6 +238,11 @@ async function handleProductDetail(slug, request) {
     
     const productName = productResult.product_name;
     
+    // Registrar log de acesso (async, não bloqueia resposta)
+    logProductAccess(slug, productName, session).catch(err =>
+      console.error('Erro ao registrar log de acesso:', err)
+    );
+    
     // Get aggregated stats
     const stats = await queryOne(
       `SELECT 
