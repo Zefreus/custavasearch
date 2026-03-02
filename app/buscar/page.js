@@ -308,3 +308,15 @@ function BuscarContent() {
     </div>
   );
 }
+
+export default function BuscarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
+      </div>
+    }>
+      <BuscarContent />
+    </Suspense>
+  );
+}
