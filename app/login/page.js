@@ -25,20 +25,22 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
+        credentials: 'include' // Garante que cookies sejam aceitos
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
-        toast.success('Login realizado com sucesso!');
         const returnUrl = searchParams.get('returnUrl') || '/';
-        console.log('Login bem-sucedido, redirecionando para:', returnUrl);
+        console.log('✅ Login bem-sucedido!');
+        console.log('📍 Redirecionando para:', returnUrl);
         
-        // Pequeno delay para garantir que o cookie foi setado
-        setTimeout(() => {
-          window.location.href = returnUrl;
-        }, 100);
+        // Toast rápido e redirect
+        toast.success('Redirecionando...');
+        
+        // Usar replace em vez de href para evitar histórico
+        window.location.replace(returnUrl);
       } else {
         toast.error(data.error || 'Erro ao fazer login');
       }
