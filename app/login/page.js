@@ -33,8 +33,12 @@ export default function LoginPage() {
       if (res.ok && data.success) {
         toast.success('Login realizado com sucesso!');
         const returnUrl = searchParams.get('returnUrl') || '/';
-        // Usar window.location para garantir que o cookie seja reconhecido
-        window.location.href = returnUrl;
+        console.log('Login bem-sucedido, redirecionando para:', returnUrl);
+        
+        // Pequeno delay para garantir que o cookie foi setado
+        setTimeout(() => {
+          window.location.href = returnUrl;
+        }, 100);
       } else {
         toast.error(data.error || 'Erro ao fazer login');
       }
