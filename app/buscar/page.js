@@ -88,7 +88,9 @@ export default function BuscarPage() {
   };
 
   const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value };
+    // Converter valores especiais para string vazia
+    const actualValue = (value === 'all' || value === 'todos') ? '' : value;
+    const newFilters = { ...filters, [key]: actualValue };
     setFilters(newFilters);
     setPage(1);
     searchProducts(query, 1, newFilters);
