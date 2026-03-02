@@ -558,6 +558,8 @@ async function handleTrending(request) {
       return NextResponse.json({ trending: cached });
     }
     
+    console.log('📊 Buscando trending dos últimos', days, 'dias');
+    
     // Buscar os termos mais buscados
     const topSearches = await query(
       `SELECT search_term, COUNT(*) as search_count
@@ -569,45 +571,58 @@ async function handleTrending(request) {
       [days]
     );
     
+    console.log('🔍 Encontrados', topSearches.length, 'termos buscados');
+    
     // Para cada termo, buscar o preço mais atual do produto
     const trendingWithPrices = [];
     
     for (const search of topSearches) {
       try {
-        // Buscar produto correspondente
-        const product = await queryOne(
+        // Buscar produto correspondente pelo termo de busca
+        const products = await query(
           `SELECT 
             COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome)) as product_name,
-            MAX(CASE WHEN nf.DataEmissao = (
-              SELECT MAX(nf2.DataEmissao) 
-              FROM zefreus.APP_NOTA_FISCAL nf2
-              INNER JOIN zefreus.APP_NOTA_FISCAL_PRODUTO p2 ON p2.NotaFiscalID = nf2.Id
-              WHERE COALESCE(NULLIF(TRIM(p2.NomeTratado), ''), TRIM(p2.Nome)) LIKE ?
-            ) THEN p.ValorUnitario END) as last_price,
-            MIN(p.ValorUnitario) as best_price
+            p.ValorUnitario as price,
+            nf.DataEmissao as date
            FROM zefreus.APP_NOTA_FISCAL_PRODUTO p
            INNER JOIN zefreus.APP_NOTA_FISCAL nf ON p.NotaFiscalID = nf.Id
-           WHERE (p.NomeTratado LIKE ? OR p.Nome LIKE ?)
-           GROUP BY COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome))
+           WHERE (LOWER(p.NomeTratado) LIKE LOWER(?) OR LOWER(p.Nome) LIKE LOWER(?))
+           ORDER BY nf.DataEmissao DESC
            LIMIT 1`,
-          [`%${search.search_term}%`, `%${search.search_term}%`, `%${search.search_term}%`]
+          [`%${search.search_term}%`, `%${search.search_term}%`]
         );
         
-        if (product && product.last_price) {
+        if (products.length > 0) {
+          const product = products[0];
+          
+          // Buscar melhor preço
+          const bestPriceResult = await queryOne(
+            `SELECT MIN(p.ValorUnitario) as best_price
+             FROM zefreus.APP_NOTA_FISCAL_PRODUTO p
+             WHERE (LOWER(p.NomeTratado) LIKE LOWER(?) OR LOWER(p.Nome) LIKE LOWER(?))`,
+            [`%${search.search_term}%`, `%${search.search_term}%`]
+          );
+          
           trendingWithPrices.push({
             searchTerm: search.search_term,
             searchCount: search.search_count,
             productName: product.product_name,
             slug: slugify(product.product_name),
-            lastPrice: parseFloat(product.last_price),
-            bestPrice: parseFloat(product.best_price),
-            variation: ((parseFloat(product.last_price) - parseFloat(product.best_price)) / parseFloat(product.best_price) * 100)
+            lastPrice: parseFloat(product.price),
+            bestPrice: parseFloat(bestPriceResult?.best_price || product.price),
+            lastUpdate: product.date
           });
+          
+          console.log('✅ Produto encontrado:', product.product_name, 'R$', product.price);
+        } else {
+          console.log('⚠️ Nenhum produto encontrado para:', search.search_term);
         }
       } catch (error) {
-        console.error('Error fetching product for search term:', search.search_term, error);
+        console.error('❌ Erro ao buscar produto para:', search.search_term, error.message);
       }
     }
+    
+    console.log('📊 Total de trending com preços:', trendingWithPrices.length);
     
     setCache(cacheKey, trendingWithPrices, 300); // Cache por 5 minutos
     
