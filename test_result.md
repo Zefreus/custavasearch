@@ -129,23 +129,29 @@ backend:
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoint criado, precisa de teste com token válido"
+      - working: true
+        agent: "testing"
+        comment: "✅ Endpoint testado com sucesso - Valida tokens corretamente, retorna 400 para tokens inválidos/expirados/ausentes com mensagens apropriadas"
 
   - task: "POST /api/auth/reset-password - Redefine senha"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoint criado, precisa de teste E2E"
+      - working: true
+        agent: "testing"
+        comment: "✅ Endpoint testado com sucesso - Valida tokens, senhas, campos obrigatórios e retorna erros apropriados (400) para casos inválidos"
 
 frontend:
   - task: "Página /esqueci-senha"
