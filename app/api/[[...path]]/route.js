@@ -707,6 +707,11 @@ export async function GET(request, context) {
     return handleFilters();
   }
   
+  // Trending route
+  if (segments[0] === 'trending') {
+    return handleTrending(request);
+  }
+  
   return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 }
 
