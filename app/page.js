@@ -206,8 +206,17 @@ export default function HomePage() {
                   </Button>
                 </>
               ) : (
-                <Link href="/login">
-                  <Button variant="outline" size="sm">Entrar</Button>
+                <>
+                  <Link href="/cadastro">
+                    <Button variant="ghost" size="sm" className="text-purple-600 hover:text-purple-800">
+                      Criar Conta
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button variant="outline" size="sm">Entrar</Button>
+                  </Link>
+                </>
+              )}
                 </Link>
               )}
             </nav>
