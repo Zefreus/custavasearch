@@ -3,6 +3,7 @@ import { query, queryOne } from '@/lib/db';
 import { authenticateUser, createSession, destroySession, getSession, requireAuth, requireAdmin } from '@/lib/auth';
 import { getCache, setCache } from '@/lib/cache';
 import { slugify } from '@/lib/utils';
+import { createLogTables, logSearch, logProductAccess, getSearchStats, getProductStats } from '@/lib/logger';
 
 // Helper to get path segments
 function getPathSegments(request) {
