@@ -887,8 +887,16 @@ export async function GET(request, context) {
   }
   
   // Auth routes
-  if (segments[0] === 'auth' && segments[1] === 'me') {
-    return handleMe();
+  if (segments[0] === 'auth') {
+    if (segments[1] === 'me') {
+      return handleMe();
+    }
+    if (segments[1] === 'google') {
+      if (segments[2] === 'callback') {
+        return handleGoogleCallback(request);
+      }
+      return handleGoogleAuth();
+    }
   }
   
   // Suggest route
@@ -907,11 +915,6 @@ export async function GET(request, context) {
       return handleProductHistory(segments[1], request);
     }
     return handleProductDetail(segments[1], request);
-  }
-  
-  // Store route
-  if (segments[0] === 'store' && segments[1]) {
-    return handleStore(segments[1]);
   }
   
   // Admin routes
@@ -950,6 +953,9 @@ export async function POST(request) {
     }
     if (segments[1] === 'logout') {
       return handleLogout();
+    }
+    if (segments[1] === 'register') {
+      return handleRegister(request);
     }
   }
   
