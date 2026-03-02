@@ -116,12 +116,21 @@ export default function BuscarPage() {
                 Custava Search
               </span>
             </Link>
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {user?.isAdmin && (
+                <Link href="/admin">
+                  <Button variant="default" size="sm" className="bg-gradient-to-r from-purple-600 to-purple-700">
+                    Admin
+                  </Button>
+                </Link>
+              )}
+              <Link href="/">
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
