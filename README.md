@@ -252,12 +252,14 @@ O aplicativo é totalmente responsivo e funciona perfeitamente em:
 ## 🔄 Fluxo de Autenticação
 
 1. Usuário entra com email + senha
-2. Backend calcula MD5 da senha
-3. Compara com `TX_SENHA` na tabela `CON_API_USER`
-4. Verifica se `IS_ATIVO = true`
-5. Cria JWT com dados do usuário (UserID, nome, email, isAdmin)
+2. Backend chama API externa: `http://www.zefreus.com.br/api/api/token`
+3. API retorna `access_token`, `token_type`, `expires_in`
+4. Backend busca dados do usuário na tabela `CON_API_USER` (se existir)
+5. Cria JWT com dados do usuário + access_token externo
 6. Armazena em cookie HttpOnly
 7. Todas as rotas protegidas validam o JWT
+
+**Nota**: Se o usuário não existir no banco local mas for autenticado pela API externa, é criado um usuário temporário com os dados disponíveis.
 
 ## 📊 Conceito de Produto
 
