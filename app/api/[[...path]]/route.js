@@ -1151,6 +1151,9 @@ export async function GET(request, context) {
       }
       return handleGoogleAuth();
     }
+    if (segments[1] === 'validate-reset-token') {
+      return handleValidateResetToken(request);
+    }
   }
   
   // Suggest route
