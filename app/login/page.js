@@ -162,6 +162,14 @@ function LoginContent() {
               className="border-purple-200 focus:border-purple-500"
               disabled={loading}
             />
+            <div className="text-right">
+              <Link 
+                href="/esqueci-senha" 
+                className="text-sm text-purple-600 hover:text-purple-800"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
           </div>
 
           <Button
