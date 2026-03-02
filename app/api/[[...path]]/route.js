@@ -1214,6 +1214,12 @@ export async function POST(request) {
     if (segments[1] === 'register') {
       return handleRegister(request);
     }
+    if (segments[1] === 'forgot-password') {
+      return handleForgotPassword(request);
+    }
+    if (segments[1] === 'reset-password') {
+      return handleResetPassword(request);
+    }
   }
   
   return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
