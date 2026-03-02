@@ -25,21 +25,34 @@ export default function AdminPage() {
 
   const checkAuthAndFetch = async () => {
     try {
-      const authRes = await fetch('/api/auth/me');
+      console.log('🔍 Verificando autenticação admin...');
+      const authRes = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
       const authData = await authRes.json();
       
-      if (!authData.user || !authData.user.isAdmin) {
+      console.log('👤 Dados do usuário:', authData);
+      
+      if (!authData.user) {
+        console.log('❌ Usuário não autenticado, redirecionando...');
+        router.push('/');
+        return;
+      }
+      
+      if (!authData.user.isAdmin) {
+        console.log('❌ Usuário não é admin:', authData.user.isAdmin);
         router.push('/');
         return;
       }
 
+      console.log('✅ Usuário é admin! Carregando dados...');
       await Promise.all([
         fetchMetrics(),
         fetchSearchLogs(),
         fetchProductLogs()
       ]);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Erro:', error);
       router.push('/');
     } finally {
       setLoading(false);
