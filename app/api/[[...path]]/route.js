@@ -5,6 +5,7 @@ import { getCache, setCache } from '@/lib/cache';
 import { slugify } from '@/lib/utils';
 import { createLogTables, logSearch, logProductAccess, getSearchStats, getProductStats } from '@/lib/logger';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 // Helper to get path segments
 function getPathSegments(request) {
