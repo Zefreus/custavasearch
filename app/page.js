@@ -220,6 +220,60 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Trending Section */}
+      {trending.length > 0 && (
+        <section className="container mx-auto px-4 py-16 bg-white/50">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Produtos Mais Buscados
+              </h2>
+              <p className="text-gray-600">
+                Veja o que as pessoas estão procurando esta semana
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {trending.slice(0, 10).map((item, index) => (
+                <Card key={item.slug} className="p-4 hover:shadow-lg transition-shadow border-purple-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-lg font-bold text-purple-700">#{index + 1}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{item.productName}</h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-sm text-gray-500">{item.searchCount} buscas</span>
+                        <span className="text-sm text-gray-300">•</span>
+                        <span className="text-lg font-bold text-green-600">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          }).format(item.lastPrice)}
+                        </span>
+                      </div>
+                    </div>
+                    {user ? (
+                      <Link href={`/produto/${item.slug}`}>
+                        <Button size="sm" variant="outline" className="flex-shrink-0">
+                          Ver
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href={`/login?returnUrl=/produto/${item.slug}`}>
+                        <Button size="sm" variant="outline" className="flex-shrink-0">
+                          Ver
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Footer */}
       <footer className="bg-white border-t border-purple-100 mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-gray-600">
