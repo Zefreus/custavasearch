@@ -26,28 +26,34 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'include' // Garante que cookies sejam aceitos
+        credentials: 'include'
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
         const returnUrl = searchParams.get('returnUrl') || '/';
-        console.log('✅ Login bem-sucedido!');
-        console.log('📍 Redirecionando para:', returnUrl);
+        console.log('✅ Login OK!');
+        console.log('📍 ReturnUrl:', returnUrl);
         
-        // Toast rápido e redirect
+        // Mostrar sucesso mas NÃO desabilitar loading
         toast.success('Redirecionando...');
         
-        // Usar replace em vez de href para evitar histórico
-        window.location.replace(returnUrl);
+        // Aguardar 300ms para garantir que o cookie foi setado pelo servidor
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Forçar reload completo da página de destino
+        window.location.href = returnUrl;
+        
+        // Manter loading ativo durante redirect
+        return;
       } else {
         toast.error(data.error || 'Erro ao fazer login');
+        setLoading(false);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       toast.error('Erro ao fazer login');
-    } finally {
       setLoading(false);
     }
   };
