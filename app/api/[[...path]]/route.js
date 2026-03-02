@@ -90,6 +90,215 @@ async function handleMe() {
   }
 }
 
+// POST /api/auth/register
+async function handleRegister(request) {
+  try {
+    const { name, email, password } = await request.json();
+    
+    if (!name || !email || !password) {
+      return NextResponse.json({ error: 'Nome, email e senha são obrigatórios' }, { status: 400 });
+    }
+    
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres' }, { status: 400 });
+    }
+    
+    // Verificar se email já existe
+    const existingUser = await queryOne(
+      'SELECT id FROM zefreus.CON_API_USER WHERE TX_EMAIL = ?',
+      [email.toLowerCase()]
+    );
+    
+    if (existingUser) {
+      return NextResponse.json({ error: 'Este email já está cadastrado' }, { status: 400 });
+    }
+    
+    // Criar hash MD5 da senha
+    const passwordHash = crypto.createHash('md5').update(password).digest('hex');
+    
+    // Inserir novo usuário
+    await query(
+      `INSERT INTO zefreus.CON_API_USER (TX_NOME, TX_EMAIL, TX_SENHA, IS_ATIVO, IsAdmin) 
+       VALUES (?, ?, ?, 'S', 'N')`,
+      [name, email.toLowerCase(), passwordHash]
+    );
+    
+    // Buscar o usuário criado
+    const newUser = await queryOne(
+      'SELECT id, TX_NOME as name, TX_EMAIL as email, IsAdmin FROM zefreus.CON_API_USER WHERE TX_EMAIL = ?',
+      [email.toLowerCase()]
+    );
+    
+    // Criar sessão automaticamente
+    const user = {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      isAdmin: newUser.IsAdmin === 'S'
+    };
+    
+    const token = await createSession(user);
+    
+    const response = NextResponse.json({ 
+      success: true, 
+      user: {
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin
+      }
+    });
+    
+    response.cookies.set('session', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/'
+    });
+    
+    console.log('✅ Novo usuário cadastrado:', email);
+    
+    return response;
+  } catch (error) {
+    console.error('Register error:', error);
+    return NextResponse.json({ error: 'Erro ao criar conta' }, { status: 500 });
+  }
+}
+
+// GET /api/auth/google - Redireciona para Google OAuth
+async function handleGoogleAuth() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/google/callback`;
+  
+  const scope = encodeURIComponent('email profile');
+  const state = crypto.randomBytes(16).toString('hex');
+  
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${clientId}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `response_type=code&` +
+    `scope=${scope}&` +
+    `state=${state}&` +
+    `access_type=offline&` +
+    `prompt=consent`;
+  
+  console.log('🔵 Redirecionando para Google OAuth');
+  
+  return NextResponse.redirect(googleAuthUrl);
+}
+
+// GET /api/auth/google/callback - Callback do Google OAuth
+async function handleGoogleCallback(request) {
+  try {
+    const url = new URL(request.url);
+    const code = url.searchParams.get('code');
+    const error = url.searchParams.get('error');
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    
+    if (error) {
+      console.error('Google OAuth error:', error);
+      return NextResponse.redirect(`${baseUrl}/login?error=google_auth_failed`);
+    }
+    
+    if (!code) {
+      return NextResponse.redirect(`${baseUrl}/login?error=no_code`);
+    }
+    
+    // Trocar código por token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: `${baseUrl}/api/auth/google/callback`,
+        grant_type: 'authorization_code'
+      })
+    });
+    
+    const tokenData = await tokenResponse.json();
+    
+    if (!tokenData.access_token) {
+      console.error('Google token error:', tokenData);
+      return NextResponse.redirect(`${baseUrl}/login?error=token_failed`);
+    }
+    
+    // Buscar informações do usuário
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` }
+    });
+    
+    const googleUser = await userResponse.json();
+    
+    if (!googleUser.email) {
+      return NextResponse.redirect(`${baseUrl}/login?error=no_email`);
+    }
+    
+    console.log('🔵 Google user:', googleUser.email, googleUser.name);
+    
+    // Verificar se usuário existe
+    let user = await queryOne(
+      'SELECT id, TX_NOME as name, TX_EMAIL as email, IsAdmin, IS_ATIVO FROM zefreus.CON_API_USER WHERE TX_EMAIL = ?',
+      [googleUser.email.toLowerCase()]
+    );
+    
+    if (!user) {
+      // Criar novo usuário
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const passwordHash = crypto.createHash('md5').update(randomPassword).digest('hex');
+      
+      await query(
+        `INSERT INTO zefreus.CON_API_USER (TX_NOME, TX_EMAIL, TX_SENHA, IS_ATIVO, IsAdmin) 
+         VALUES (?, ?, ?, 'S', 'N')`,
+        [googleUser.name || googleUser.email.split('@')[0], googleUser.email.toLowerCase(), passwordHash]
+      );
+      
+      user = await queryOne(
+        'SELECT id, TX_NOME as name, TX_EMAIL as email, IsAdmin, IS_ATIVO FROM zefreus.CON_API_USER WHERE TX_EMAIL = ?',
+        [googleUser.email.toLowerCase()]
+      );
+      
+      console.log('✅ Novo usuário Google cadastrado:', googleUser.email);
+    }
+    
+    // Verificar se usuário está ativo
+    if (user.IS_ATIVO !== 'S') {
+      return NextResponse.redirect(`${baseUrl}/login?error=user_inactive`);
+    }
+    
+    // Criar sessão
+    const sessionUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.IsAdmin === 'S'
+    };
+    
+    const token = await createSession(sessionUser);
+    
+    // Criar resposta com redirecionamento
+    const response = NextResponse.redirect(`${baseUrl}/`);
+    
+    response.cookies.set('session', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/'
+    });
+    
+    console.log('✅ Login Google bem-sucedido:', googleUser.email);
+    
+    return response;
+  } catch (error) {
+    console.error('Google callback error:', error);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    return NextResponse.redirect(`${baseUrl}/login?error=callback_failed`);
+  }
+}
+
 // GET /api/suggest?q=
 async function handleSuggest(request) {
   try {
