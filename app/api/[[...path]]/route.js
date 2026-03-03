@@ -1295,6 +1295,11 @@ export async function GET(request, context) {
     return handleTrending(request);
   }
   
+  // Store route (by name/slug)
+  if (segments[0] === 'store' && segments[1]) {
+    return handleStoreByName(segments[1], request);
+  }
+  
   return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 }
 
