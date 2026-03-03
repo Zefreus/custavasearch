@@ -927,6 +927,104 @@ async function handleStore(cnpj) {
   }
 }
 
+// GET /api/store-by-name/{slug} - Buscar loja pelo nome (slug)
+async function handleStoreByName(slug, request) {
+  try {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = 20;
+    const offset = (page - 1) * limit;
+    
+    // Decodificar o slug para buscar o nome da loja
+    const searchName = decodeURIComponent(slug).replace(/-/g, ' ').replace(/%20/g, ' ');
+    
+    console.log('🏪 Buscando loja:', searchName);
+    
+    // Buscar a loja pelo nome (usando LIKE para maior flexibilidade)
+    const storeInfo = await queryOne(
+      `SELECT 
+        Local as name,
+        uf,
+        Endereco as address,
+        MAX(DataEmissao) as last_date
+       FROM zefreus.APP_NOTA_FISCAL
+       WHERE Local LIKE ?
+       GROUP BY Local, uf, Endereco
+       ORDER BY COUNT(*) DESC
+       LIMIT 1`,
+      [`%${searchName}%`]
+    );
+    
+    if (!storeInfo) {
+      return NextResponse.json({ error: 'Loja não encontrada' }, { status: 404 });
+    }
+    
+    const storeName = storeInfo.name;
+    
+    // Contar total de produtos distintos
+    const productCount = await queryOne(
+      `SELECT 
+        COUNT(DISTINCT COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome))) as total_products,
+        COUNT(*) as total_occurrences
+       FROM zefreus.APP_NOTA_FISCAL_PRODUTO p
+       INNER JOIN zefreus.APP_NOTA_FISCAL nf ON p.NotaFiscalID = nf.Id
+       WHERE nf.Local = ?`,
+      [storeName]
+    );
+    
+    // Buscar produtos vendidos na loja com paginação
+    const products = await query(
+      `SELECT 
+        COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome)) as product_name,
+        COUNT(*) as occurrences,
+        MIN(p.ValorUnitario) as best_price,
+        MAX(nf.DataEmissao) as last_date,
+        MAX(CASE WHEN nf.DataEmissao = (
+          SELECT MAX(nf2.DataEmissao) 
+          FROM zefreus.APP_NOTA_FISCAL nf2
+          INNER JOIN zefreus.APP_NOTA_FISCAL_PRODUTO p2 ON p2.NotaFiscalID = nf2.Id
+          WHERE nf2.Local = ? AND COALESCE(NULLIF(TRIM(p2.NomeTratado), ''), TRIM(p2.Nome)) = COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome))
+        ) THEN p.ValorUnitario END) as last_price
+       FROM zefreus.APP_NOTA_FISCAL_PRODUTO p
+       INNER JOIN zefreus.APP_NOTA_FISCAL nf ON p.NotaFiscalID = nf.Id
+       WHERE nf.Local = ?
+       GROUP BY COALESCE(NULLIF(TRIM(p.NomeTratado), ''), TRIM(p.Nome))
+       ORDER BY occurrences DESC
+       LIMIT ? OFFSET ?`,
+      [storeName, storeName, limit, offset]
+    );
+    
+    const totalProducts = productCount?.total_products || 0;
+    const totalPages = Math.ceil(totalProducts / limit);
+    
+    const result = {
+      name: storeInfo.name,
+      uf: storeInfo.uf,
+      address: storeInfo.address,
+      lastDate: storeInfo.last_date,
+      totalProducts: totalProducts,
+      totalOccurrences: productCount?.total_occurrences || 0,
+      products: products.map(p => ({
+        name: p.product_name,
+        slug: slugify(p.product_name),
+        lastPrice: parseFloat(p.last_price || p.best_price || 0),
+        bestPrice: parseFloat(p.best_price || 0),
+        lastDate: p.last_date,
+        occurrences: p.occurrences
+      })),
+      page,
+      totalPages
+    };
+    
+    console.log('✅ Loja encontrada:', storeName, '- Produtos:', totalProducts);
+    
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Store by name error:', error);
+    return NextResponse.json({ error: 'Erro ao carregar loja' }, { status: 500 });
+  }
+}
+
 // GET /api/admin/metrics
 async function handleAdminMetrics() {
   try {
