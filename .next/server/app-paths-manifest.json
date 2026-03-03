@@ -1,0 +1,7 @@
+{
+  "/redefinir-senha/page": "app/redefinir-senha/page.js",
+  "/loja/[slug]/page": "app/loja/[slug]/page.js",
+  "/produto/[slug]/page": "app/produto/[slug]/page.js",
+  "/api/[[...path]]/route": "app/api/[[...path]]/route.js",
+  "/login/page": "app/login/page.js"
+}
