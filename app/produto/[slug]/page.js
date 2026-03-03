@@ -225,7 +225,6 @@ export default function ProdutoPage() {
                   <th className="pb-3 text-sm font-semibold text-gray-600">Unidade</th>
                   <th className="pb-3 text-sm font-semibold text-gray-600">Loja</th>
                   <th className="pb-3 text-sm font-semibold text-gray-600">UF</th>
-                  <th className="pb-3 text-sm font-semibold text-gray-600">CNPJ</th>
                 </tr>
               </thead>
               <tbody>
