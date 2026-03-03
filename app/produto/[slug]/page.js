@@ -236,12 +236,11 @@ export default function ProdutoPage() {
                     <td className="py-3 text-sm">{item.quantity}</td>
                     <td className="py-3 text-sm">{item.unit}</td>
                     <td className="py-3 text-sm">
-                      <Link href={`/loja/${item.cnpj}`} className="text-purple-600 hover:underline">
+                      <Link href={`/loja/${encodeURIComponent(item.store)}`} className="text-purple-600 hover:underline">
                         {item.store}
                       </Link>
                     </td>
                     <td className="py-3 text-sm">{item.uf}</td>
-                    <td className="py-3 text-sm font-mono text-xs">{item.cnpj}</td>
                   </tr>
                 ))}
               </tbody>
